@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface Profile {
   id: string;
@@ -13,13 +22,24 @@ interface Profile {
   avatar_url: string | null;
 }
 
+interface ProfileFormValues {
+  email: string;
+  full_name: string;
+}
+
 export default function Account() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [fullName, setFullName] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const form = useForm<ProfileFormValues>({
+    defaultValues: {
+      email: "",
+      full_name: "",
+    },
+  });
 
   useEffect(() => {
     const getUser = async () => {
@@ -36,14 +56,17 @@ export default function Account() {
           console.error("Error fetching profile:", error);
         } else if (data) {
           setProfile(data);
-          setFullName(data.full_name || "");
+          form.reset({
+            email: data.email || "",
+            full_name: data.full_name || "",
+          });
         }
       }
       setLoading(false);
     };
 
     getUser();
-  }, []);
+  }, [form]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -51,14 +74,14 @@ export default function Account() {
     }
   }, [loading, user, navigate]);
 
-  const handleUpdateProfile = async () => {
+  const handleUpdateProfile = async (values: ProfileFormValues) => {
     if (!user) return;
 
     try {
       const { error } = await supabase
         .from("profiles")
         .update({
-          full_name: fullName,
+          full_name: values.full_name,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
@@ -103,40 +126,46 @@ export default function Account() {
           <p className="text-gray-600">Gérez vos informations personnelles</p>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <Input
-              type="email"
-              value={profile?.email || ""}
-              disabled
-              className="mt-1"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleUpdateProfile)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Nom complet
-            </label>
-            <Input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="mt-1"
+            <FormField
+              control={form.control}
+              name="full_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom complet</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="flex space-x-4">
-            <Button onClick={handleUpdateProfile}>
-              Mettre à jour le profil
-            </Button>
-            <Button variant="destructive" onClick={handleSignOut}>
-              Se déconnecter
-            </Button>
-          </div>
-        </div>
+            <div className="flex space-x-4">
+              <Button type="submit">
+                Mettre à jour le profil
+              </Button>
+              <Button variant="destructive" onClick={handleSignOut} type="button">
+                Se déconnecter
+              </Button>
+            </div>
+          </form>
+        </Form>
       </div>
     </div>
   );
