@@ -27,18 +27,30 @@ const Navbar = () => {
             LuxWatch
           </Link>
           <div className="flex items-center space-x-4">
-            <Link to="/products" className="text-gray-600 hover:text-gray-900">
+            <Link 
+              to="/products" 
+              className="text-gray-600 hover:text-gray-900"
+            >
               Catalogue
             </Link>
-            <Link to="/cart" className="text-gray-600 hover:text-gray-900">
+            <Link 
+              to="/cart" 
+              className="text-gray-600 hover:text-gray-900"
+            >
               <ShoppingCart className="h-6 w-6" />
             </Link>
             {user ? (
-              <Link to="/account" className="text-gray-600 hover:text-gray-900">
+              <Link 
+                to="/account" 
+                className="text-gray-600 hover:text-gray-900"
+              >
                 <User className="h-6 w-6" />
               </Link>
             ) : (
-              <Link to="/auth" className="text-gray-600 hover:text-gray-900">
+              <Link 
+                to="/auth" 
+                className="text-gray-600 hover:text-gray-900"
+              >
                 Se connecter
               </Link>
             )}
